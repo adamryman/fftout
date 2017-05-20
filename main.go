@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/cmplx"
 
+	"github.com/adamryman/fftout/dft"
 	"github.com/adamryman/fftout/sample"
 	ui "github.com/gizak/termui"
 	"github.com/mjibson/go-dsp/fft"
@@ -18,6 +19,7 @@ var (
 	frequency  = flag.Float64P("frequency", "f", 4.0, "frequency")
 	amplitude  = flag.Float64P("amplitude", "a", 1.0, "amplitude of signal from 0 to max 1")
 	phase      = flag.Float64P("phase", "p", 0.0, "phase in degrees")
+	dtf        = flag.BoolP("dtf true, fft default", "d", false, "switch true to use dft rather than fft")
 )
 
 func init() {
@@ -60,9 +62,18 @@ func main() {
 	amp := make([]float64, *sampleRate)
 	pha := make([]float64, *sampleRate)
 
-	for i, v := range fft.FFTReal(time) {
-		amp[i], pha[i] = cmplx.Polar(v)
-		pha[i] = pha[i] * 180 / math.Pi
+	switch *dtf {
+	case true:
+		for i, v := range dft.DFTReal(time) {
+			amp[i], pha[i] = cmplx.Polar(v)
+			pha[i] = pha[i] * 180 / math.Pi
+		}
+
+	case false:
+		for i, v := range fft.FFTReal(time) {
+			amp[i], pha[i] = cmplx.Polar(v)
+			pha[i] = pha[i] * 180 / math.Pi
+		}
 	}
 
 	if err := ui.Init(); err != nil {
